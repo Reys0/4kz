@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <title>Интерактивный калькулятор</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root {
+      --bg: #0f1220;
+      --card: #171a2b;
+      --btn: #2e3a9e;
+      --btn-hover: #4056d3;
+      --text: #e8eaf6;
+      --muted: #9aa4b2;
+      --output: #1d2340;
+      --error: #e74c3c;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { height: 100%; margin: 0; font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto; background: linear-gradient(135deg, #0a0e1a 0%, #1a1f3a 100%); color: var(--text); }
+
+    .container {
+      max-width: 420px;
+      margin: 80px auto;
+      padding: 24px;
+      background: rgba(23,26,43,0.95);
+      border-radius: 12px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+
+    h1 {
+      font-size: 20px;
+      font-weight: 600;
+      margin: 0 0 16px;
+      text-align: center;
+      color: #f5f7ff;
+    }
+
+    .row { display: flex; gap: 12px; margin-bottom: 12px; }
+
+    input[type="text"] {
+      flex: 1;
+      padding: 12px 14px;
+      border-radius: 8px;
+      border: 1px solid #2e2e5a;
+      background: #0e1430;
+      color: #fff;
+      font-size: 14px;
+    }
+
+    .buttons { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 12px; }
+
+    button {
+      padding: 12px 14px;
+      border-radius: 8px;
+      border: none;
+      background: var(--btn);
+      color: white;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.02s ease, background 0.2s ease;
+    }
+    button:hover { background: var(--btn-hover); }
+    button:active { transform: scale(0.98); }
+
+    .output {
+      height: 48px;
+      padding: 12px;
+      border-radius: 8px;
+      background: var(--output);
+      border: 1px solid #2a2a6b;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: monospace;
+      font-size: 16px;
+      color: #e9e9ff;
+      min-height: 48px;
+    }
+
+    .error { color: var(--error); font-weight: 600; }
+  </style>
+</head>
+<body>
+  <div class="container" aria-label="Интерактивный калькулятор">
+    <h1>Интерактивный калькулятор</h1>
+
+    <div class="row" aria-label="Ввод чисел">
+      <input id="inputA" type="text" placeholder="Введите число a" inputmode="decimal" />
+    </div>
+    <div class="row" aria-label="Ввод чисел продолжение">
+      <input id="inputB" type="text" placeholder="Введите число b" inputmode="decimal" />
+    </div>
+
+    <div class="buttons" role="group" aria-label="Операции">
+      <button id="btnSum" data-operation="sum">сумма</button>
+      <button id="btnDiff" data-operation="difference">разность</button>
+      <button id="btnProd" data-operation="product">произведение</button>
+      <button id="btnDiv" data-operation="division">деление</button>
+    </div>
+
+    <div id="output" class="output" aria-live="polite" role="status"></div>
+  </div>
+
+  <script>
+    // Функции-операции
+    function sum(a, b) { return a + b; }
+    function difference(a, b) { return a - b; }
+    function product(a, b) { return a * b; }
+    function division(a, b) { return a / b; }
+
+    // Вспомогательная валидация: проверка, что оба ввода числовые
+    function parseInputs() {
+      const aRaw = document.getElementById('inputA').value.trim();
+      const bRaw = document.getElementById('inputB').value.trim();
+
+      // Разрешаем числа в формате целых и с плавающей точкой.
+      // Используем проверку на число после попытки преобразования.
+      const a = Number(aRaw);
+      const b = Number(bRaw);
+
+      const validA = aRaw !== '' && !Number.isNaN(a);
+      const validB = bRaw !== '' && !Number.isNaN(b);
+
+      if (!validA || !validB) {
+        return { valid: false, message: 'Ошибка: введите корректные числа в оба поля.' };
+      }
+      return { valid: true, a, b };
+    }
+
+    // Обработчики кнопок
+    function attachHandlers() {
+      const output = document.getElementById('output');
+      const buttons = document.querySelectorAll('button[data-operation]');
+
+      buttons.forEach(btn => {
+        btn.addEventListener('click', () => {
+          const parsed = parseInputs();
+          if (!parsed.valid) {
+            output.textContent = parsed.message;
+            output.classList.add('error');
+            return;
+          }
+
+          const { a, b } = parsed;
+          let result;
+          switch (btn.getAttribute('data-operation')) {
+            case 'sum':
+              result = sum(a, b);
+              break;
+            case 'difference':
+              result = difference(a, b);
+              break;
+            case 'product':
+              result = product(a, b);
+              break;
+            case 'division':
+              result = division(a, b);
+              break;
+            default:
+              result = 'Неизвестная операция';
+          }
+
+          output.textContent = `результат: ${result}`;
+          output.classList.remove('error');
+        });
+      });
+    }
+
+    // Инициализация
+    document.addEventListener('DOMContentLoaded', attachHandlers);
+  </script>
+</body>
+</html>
